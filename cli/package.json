@@ -1,0 +1,33 @@
+{
+  "name": "longdiv-cli",
+  "version": "1.0.0",
+  "description": "Command-line tool for generating long division worksheets as PDF files",
+  "main": "alternative-cli.js",
+  "bin": {
+    "longdiv": "./alternative-cli.js"
+  },
+  "scripts": {
+    "test": "node test-static-pdf.js",
+    "generate": "node alternative-cli.js"
+  },
+  "keywords": [
+    "math",
+    "education",
+    "long-division",
+    "worksheet",
+    "pdf",
+    "cli"
+  ],
+  "author": "Long Division Worksheet Generator",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^9.0.0",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "puppeteer": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

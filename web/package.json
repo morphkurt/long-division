@@ -1,0 +1,20 @@
+{
+  "name": "longdiv-web",
+  "version": "1.0.0",
+  "description": "Interactive web-based long division worksheet generator",
+  "main": "index.html",
+  "scripts": {
+    "serve": "python3 -m http.server 8000",
+    "open": "open http://localhost:8000"
+  },
+  "keywords": [
+    "math",
+    "education",
+    "long-division",
+    "worksheet",
+    "interactive",
+    "web"
+  ],
+  "author": "Long Division Worksheet Generator",
+  "license": "MIT"
+}
