@@ -39,6 +39,21 @@
             background: #e0e0e0;
         }
 
+        .controls label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .controls select {
+            margin-right: 10px;
+            padding: 6px 8px;
+            font-family: inherit;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+        }
+
         .problems-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -190,7 +205,21 @@
 <body>
 
     <div class="controls">
-        <button onclick="generateProblems()">New Problems</button>
+        <label for="complexity">Difficulty: </label>
+        <select id="complexity" onchange="generateProblems()">
+            <option value="easy">Easy (10-50 ÷, 100-199 quotient)</option>
+            <option value="medium" selected>Medium (10-99 ÷, 100-999 quotient)</option>
+            <option value="hard">Hard (50-99 ÷, 500-999 quotient)</option>
+        </select>
+        
+        <label for="problem-count" style="margin-left: 20px;">Problems: </label>
+        <select id="problem-count" onchange="generateProblems()">
+            <option value="6">6 Problems</option>
+            <option value="9" selected>9 Problems</option>
+            <option value="12">12 Problems</option>
+        </select>
+        
+        <button onclick="generateProblems()" style="margin-left: 20px;">New Problems</button>
         <button onclick="toggleAnswers()" id="answer-toggle">Show Answers</button>
         <button onclick="window.print()">Print</button>
     </div>
@@ -235,8 +264,19 @@
         }
 
         function generateRandomProblem() {
-            const divisor = Math.floor(Math.random() * 90) + 10; // 10-99
-            const quotient = Math.floor(Math.random() * 900) + 100; // 100-999
+            const complexity = document.getElementById('complexity').value;
+            
+            // Complexity settings matching CLI
+            const complexityMap = {
+                easy: { divisorMin: 10, divisorMax: 50, quotientMin: 100, quotientMax: 199 },
+                medium: { divisorMin: 10, divisorMax: 99, quotientMin: 100, quotientMax: 999 },
+                hard: { divisorMin: 50, divisorMax: 99, quotientMin: 500, quotientMax: 999 }
+            };
+            
+            const config = complexityMap[complexity] || complexityMap.medium;
+            
+            const divisor = Math.floor(Math.random() * (config.divisorMax - config.divisorMin + 1)) + config.divisorMin;
+            const quotient = Math.floor(Math.random() * (config.quotientMax - config.quotientMin + 1)) + config.quotientMin;
             const dividend = divisor * quotient;
             
             // Ensure 5-digit dividend
@@ -419,9 +459,23 @@
         }
 
         function generateProblems() {
+            const problemCount = parseInt(document.getElementById('problem-count').value);
             problems = [];
-            for (let i = 0; i < 9; i++) {
+            for (let i = 0; i < problemCount; i++) {
                 problems.push(generateRandomProblem());
+            }
+            
+            // Update grid layout based on problem count
+            const grid = document.getElementById('problems-grid');
+            if (problemCount === 6) {
+                grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                grid.style.gridTemplateRows = 'repeat(2, 1fr)';
+            } else if (problemCount === 9) {
+                grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                grid.style.gridTemplateRows = 'repeat(3, 1fr)';
+            } else if (problemCount === 12) {
+                grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                grid.style.gridTemplateRows = 'repeat(3, 1fr)';
             }
             // Reset to hidden state when generating new problems
             showingAnswers = false;
