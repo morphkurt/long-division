@@ -57,10 +57,10 @@
         .problems-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
             gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
+            padding-bottom: 50px;
         }
 
         .problem {
@@ -217,6 +217,10 @@
             <option value="6">6 Problems</option>
             <option value="9" selected>9 Problems</option>
             <option value="12">12 Problems</option>
+            <option value="15">15 Problems</option>
+            <option value="21">21 Problems</option>
+            <option value="30">30 Problems</option>
+            <option value="infinite">Infinite Scroll</option>
         </select>
         
         <button onclick="generateProblems()" style="margin-left: 20px;">New Problems</button>
@@ -458,24 +462,33 @@
             `;
         }
 
+        let isInfiniteMode = false;
+        let loadingMore = false;
+        
         function generateProblems() {
-            const problemCount = parseInt(document.getElementById('problem-count').value);
-            problems = [];
-            for (let i = 0; i < problemCount; i++) {
-                problems.push(generateRandomProblem());
-            }
-            
-            // Update grid layout based on problem count
+            const problemCountValue = document.getElementById('problem-count').value;
             const grid = document.getElementById('problems-grid');
-            if (problemCount === 6) {
-                grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
-                grid.style.gridTemplateRows = 'repeat(2, 1fr)';
-            } else if (problemCount === 9) {
-                grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
-                grid.style.gridTemplateRows = 'repeat(3, 1fr)';
-            } else if (problemCount === 12) {
-                grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
-                grid.style.gridTemplateRows = 'repeat(3, 1fr)';
+            
+            // Always use 3 columns for unlimited layout
+            grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            grid.style.gridTemplateRows = 'none'; // Remove fixed rows
+            
+            if (problemCountValue === 'infinite') {
+                isInfiniteMode = true;
+                problems = [];
+                // Start with 12 problems for infinite mode
+                for (let i = 0; i < 12; i++) {
+                    problems.push(generateRandomProblem());
+                }
+                setupInfiniteScroll();
+            } else {
+                isInfiniteMode = false;
+                removeInfiniteScroll();
+                const problemCount = parseInt(problemCountValue);
+                problems = [];
+                for (let i = 0; i < problemCount; i++) {
+                    problems.push(generateRandomProblem());
+                }
             }
             // Reset to hidden state when generating new problems
             showingAnswers = false;
@@ -499,6 +512,40 @@
         }
 
         // Generate initial problems when page loads
+        function loadMoreProblems() {
+            if (loadingMore || !isInfiniteMode) return;
+            
+            loadingMore = true;
+            // Add 6 more problems
+            for (let i = 0; i < 6; i++) {
+                problems.push(generateRandomProblem());
+            }
+            renderProblems();
+            loadingMore = false;
+        }
+        
+        function setupInfiniteScroll() {
+            window.addEventListener('scroll', handleInfiniteScroll);
+        }
+        
+        function removeInfiniteScroll() {
+            window.removeEventListener('scroll', handleInfiniteScroll);
+        }
+        
+        function handleInfiniteScroll() {
+            if (!isInfiniteMode) return;
+            
+            // Check if user has scrolled near bottom
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.offsetHeight;
+            
+            // Load more when 200px from bottom
+            if (scrollTop + windowHeight >= documentHeight - 200) {
+                loadMoreProblems();
+            }
+        }
+        
         window.addEventListener('load', generateProblems);
     </script>
 </body>
