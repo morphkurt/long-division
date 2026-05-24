@@ -22,9 +22,11 @@ long-div/
 │   ├── static-generator.js # Static HTML generator
 │   ├── test-static-pdf.js  # PDF testing utility
 │   └── package.json        # CLI dependencies
-├── web/                    # Web interface
+├── web/                    # Web interface source
 │   ├── index.html          # Interactive worksheet generator
 │   └── package.json        # Web component info
+├── docs/                   # GitHub Pages deployment
+│   └── index.html          # Hosted web interface
 └── README.md              # This file
 ```
 
@@ -32,6 +34,9 @@ long-div/
 
 ### Web Interface
 
+**🌐 Live Demo**: [https://morphkurt.github.io/long-division/](https://morphkurt.github.io/long-division/)
+
+Or run locally:
 1. Open the web interface:
    ```bash
    cd web
