@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5-Digit by 2-Digit Long Division Worksheet</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: white;
+            color: #333;
+        }
+
+
+        .controls {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .controls button {
+            margin: 0 10px;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .controls button:hover {
+            background: #e0e0e0;
+        }
+
+        .problems-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .problem {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            page-break-inside: avoid;
+        }
+
+        .problem-container {
+            display: inline-block;
+        }
+
+        .quotient-row {
+            display: flex;
+            margin-bottom: 2px;
+        }
+
+        .quotient-box {
+            width: 28px;
+            height: 28px;
+            border: 0.5px solid #333;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .quotient-box.active {
+            background: #f8d0d0;
+        }
+
+        .dividend-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .divisor-area {
+            text-align: right;
+            padding-right: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            font-family: monospace;
+        }
+
+        .dividend-bracket {
+            border-top: 2px solid black;
+            border-left: 2px solid black;
+            display: flex;
+            padding-top: 5px;
+            padding-left: 5px;
+        }
+
+        .dividend-digit {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .work-table {
+            border-collapse: collapse;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .work-table colgroup col {
+            width: 28px;
+        }
+
+        .work-cell {
+            width: 28px;
+            height: 26px;
+            border: 0.5px solid #ccc;
+            text-align: center;
+            vertical-align: middle;
+            background: white;
+        }
+
+        .work-cell.pink {
+            background: #f8d0d0;
+        }
+
+        .work-cell.white {
+            background: white;
+        }
+
+        .work-cell.thick-bottom {
+            border-bottom: 2px solid black;
+        }
+
+        .remainder-label {
+            text-align: left;
+            padding-left: 5px;
+            color: red;
+            font-weight: bold;
+            background: white;
+        }
+
+        @media print {
+            .controls {
+                display: none;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .problems-grid {
+                gap: 20px;
+            }
+            
+            .problem {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media screen and (max-width: 900px) {
+            .problems-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(5, 1fr);
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .problems-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(9, 1fr);
+            }
+            
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button onclick="generateProblems()">New Problems</button>
+        <button onclick="toggleAnswers()" id="answer-toggle">Show Answers</button>
+        <button onclick="window.print()">Print</button>
+    </div>
+
+    <div class="problems-grid" id="problems-grid">
+        <!-- Problems will be generated here -->
+    </div>
+
+    <script>
+        let problems = [];
+        let showingAnswers = false;
+
+        // PART 1: THE ALGORITHM
+        function computeLongDivisionSteps(dividend, divisor) {
+            const dividendStr = dividend.toString().padStart(5, '0');
+            const steps = [];
+            let working = 0;
+            let hasNonZeroQuotient = false;
+            
+            for (let i = 0; i < 5; i++) {
+                working = working * 10 + parseInt(dividendStr[i]);
+                const q = Math.floor(working / divisor);
+                const product = q * divisor;
+                const remainder = working - product;
+                
+                if (q > 0) hasNonZeroQuotient = true;
+                
+                steps.push({
+                    digitIndex: i,
+                    working: working,
+                    product: product,
+                    quotientDigit: q,
+                    remainder: remainder,
+                    isLeadingZero: q === 0 && !hasNonZeroQuotient,
+                    showInGrid: hasNonZeroQuotient || q > 0
+                });
+                
+                working = remainder;
+            }
+            
+            return steps;
+        }
+
+        function generateRandomProblem() {
+            const divisor = Math.floor(Math.random() * 90) + 10; // 10-99
+            const quotient = Math.floor(Math.random() * 900) + 100; // 100-999
+            const dividend = divisor * quotient;
+            
+            // Ensure 5-digit dividend
+            if (dividend < 10000 || dividend > 99999) {
+                return generateRandomProblem();
+            }
+            
+            const steps = computeLongDivisionSteps(dividend, divisor);
+            
+            return {
+                divisor,
+                dividend,
+                quotient,
+                steps,
+                remainder: 0 // Always 0 since dividend = divisor × quotient
+            };
+        }
+
+        function createProblemHTML(problem, index) {
+            const dividendStr = problem.dividend.toString();
+            const quotientStr = problem.quotient.toString();
+            
+            // Calculate bracket width (divisor width + padding) - smaller for 9 problems
+            const divisorWidth = problem.divisor.toString().length * 10 + 16; // Approximate width
+            const bracketWidth = Math.max(50, divisorWidth); // Minimum 50px
+            
+            // Quotient boxes row
+            let quotientBoxes = '';
+            let hasNonZero = false;
+            for (let i = 0; i < 5; i++) {
+                const step = problem.steps[i];
+                const digit = step.quotientDigit;
+                
+                if (digit > 0 || hasNonZero) {
+                    hasNonZero = true;
+                    const displayDigit = showingAnswers ? digit : '';
+                    quotientBoxes += `<div class="quotient-box active">${displayDigit}</div>`;
+                } else {
+                    quotientBoxes += `<div class="quotient-box"></div>`;
+                }
+            }
+            
+            // Dividend digits
+            let dividendDigits = '';
+            for (let i = 0; i < 5; i++) {
+                dividendDigits += `<div class="dividend-digit">${dividendStr[i]}</div>`;
+            }
+            
+            // Work area table - Only show steps with showInGrid = true
+            let workTable = '<table class="work-table"><colgroup>';
+            for (let i = 0; i < 5; i++) {
+                workTable += '<col>';
+            }
+            workTable += '</colgroup><tbody>';
+            
+            const visibleSteps = problem.steps.filter(step => step.showInGrid);
+            
+            for (let visibleIndex = 0; visibleIndex < visibleSteps.length; visibleIndex++) {
+                const step = visibleSteps[visibleIndex];
+                const stepIndex = step.digitIndex;
+                const workingStr = step.working.toString();
+                const workingDigits = workingStr.length;
+                const endCol = stepIndex; // Working number MUST end at column stepIndex
+                const startCol = endCol - (workingDigits - 1);
+                
+                // PINK ROW (working number)
+                workTable += '<tr>';
+                for (let col = 0; col < 5; col++) {
+                    let cellClass = 'work-cell';
+                    let cellContent = '';
+                    
+                    if (col <= endCol) {
+                        // All columns up to and including endCol are pink
+                        cellClass += ' pink';
+                        
+                        // Place digits only in the range [startCol, endCol] and only if showing answers
+                        if (showingAnswers && col >= startCol && col <= endCol) {
+                            const digitIndex = col - startCol;
+                            if (digitIndex < workingStr.length) {
+                                cellContent = workingStr[digitIndex];
+                            }
+                        }
+                    }
+                    // Columns after endCol are white background, no number
+                    
+                    workTable += `<td class="${cellClass}">${cellContent}</td>`;
+                }
+                workTable += '</tr>';
+                
+                // WHITE ROW (shows product when answers are shown)
+                workTable += '<tr>';
+                for (let col = 0; col < 5; col++) {
+                    let cellClass = 'work-cell';
+                    let cellContent = '';
+                    
+                    if (visibleIndex < visibleSteps.length - 1) { // Don't add thick line after last step
+                        cellClass += ' thick-bottom';
+                    }
+                    
+                    // Show product when answers are displayed
+                    if (showingAnswers && col >= startCol && col <= endCol) {
+                        const productStr = step.product.toString();
+                        const workingDigits = step.working.toString().length;
+                        // Left-pad product to match working number digit count
+                        const paddedProduct = productStr.padStart(workingDigits, '0');
+                        
+                        const digitIndex = col - startCol;
+                        if (digitIndex < paddedProduct.length) {
+                            cellContent = paddedProduct[digitIndex];
+                        }
+                    }
+                    
+                    workTable += `<td class="${cellClass}">${cellContent}</td>`;
+                }
+                workTable += '</tr>';
+            }
+            
+            // Final remainder row
+            const finalRemainder = problem.remainder;
+            workTable += '<tr>';
+            for (let col = 0; col < 5; col++) {
+                let cellClass = 'work-cell pink';
+                let cellContent = '';
+                
+                if (showingAnswers) {
+                    if (finalRemainder === 0) {
+                        if (col === 4) {
+                            cellContent = '0';
+                        }
+                    } else {
+                        const remainderStr = finalRemainder.toString();
+                        const remainderDigits = remainderStr.length;
+                        const remainderStartCol = 4 - (remainderDigits - 1);
+                        
+                        if (col >= remainderStartCol) {
+                            const digitIndex = col - remainderStartCol;
+                            if (digitIndex < remainderStr.length) {
+                                cellContent = remainderStr[digitIndex];
+                            }
+                        }
+                    }
+                }
+                
+                workTable += `<td class="${cellClass}">${cellContent}</td>`;
+            }
+            workTable += '</tr>';
+            
+            // R label row
+            workTable += '<tr>';
+            workTable += `<td colspan="5" class="remainder-label">R: ${showingAnswers ? finalRemainder : ''}</td>`;
+            workTable += '</tr>';
+            
+            workTable += '</tbody></table>';
+            
+            return `
+                <div class="problem">
+                    <div class="problem-container">
+                        <!-- Quotient boxes row -->
+                        <div class="quotient-row" style="margin-left: ${bracketWidth}px;">
+                            ${quotientBoxes}
+                        </div>
+                        
+                        <!-- Dividend row with divisor on left -->
+                        <div class="dividend-container">
+                            <div class="divisor-area" style="width: ${bracketWidth}px;">
+                                ${problem.divisor}
+                            </div>
+                            <div class="dividend-bracket">
+                                ${dividendDigits}
+                            </div>
+                        </div>
+                        
+                        <!-- Work area grid, indented to align with dividend digits -->
+                        <div style="margin-left: ${bracketWidth}px;">
+                            ${workTable}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateProblems() {
+            problems = [];
+            for (let i = 0; i < 9; i++) {
+                problems.push(generateRandomProblem());
+            }
+            // Reset to hidden state when generating new problems
+            showingAnswers = false;
+            const button = document.getElementById('answer-toggle');
+            button.textContent = 'Show Answers';
+            renderProblems();
+        }
+
+        function renderProblems() {
+            const grid = document.getElementById('problems-grid');
+            grid.innerHTML = problems.map((problem, index) => 
+                createProblemHTML(problem, index)
+            ).join('');
+        }
+
+        function toggleAnswers() {
+            showingAnswers = !showingAnswers;
+            const button = document.getElementById('answer-toggle');
+            button.textContent = showingAnswers ? 'Hide Answers' : 'Show Answers';
+            renderProblems();
+        }
+
+        // Generate initial problems when page loads
+        window.addEventListener('load', generateProblems);
+    </script>
+</body>
+</html>

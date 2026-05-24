@@ -6,8 +6,11 @@ yarn-error.log*
 
 # Generated files
 *.pdf
-*.html
 temp_worksheets/
+# Ignore generated HTML files but not source files
+/static-*.html
+/worksheet*.html
+/test-*.html
 
 # IDE files
 .vscode/
